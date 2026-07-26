@@ -70,3 +70,11 @@ either the decision needs reconsidering, or this document is missing something.
   access — but this project does not implement full regulatory compliance (e.g. no
   customer-managed KMS key rotation policy, no full audit-to-SIEM pipeline). This is a
   deliberate scoping decision, not an oversight (see ADR-000).
+
+- **NFR-SEC-7:** Edge-level protection (e.g. WAF, rate limiting against brute-force or
+  injection traffic) is explicitly out of scope for DentalFlow. This is a deliberate
+  cost/complexity tradeoff (see NFR-COST-1) appropriate for a single-tenant, low-traffic
+  learning project — not an oversight. Edge protection becomes a required decision for
+  the future multi-tenant CloudDent platform, where real internet-facing traffic volume
+  and PHI sensitivity raise the threat model materially. See
+  docs/adrs/0000-single-tenant-scope.md.
