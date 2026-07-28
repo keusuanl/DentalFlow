@@ -17,3 +17,10 @@ module "networking" {
   source      = "../../modules/networking"
   environment = "dev"
 }
+
+module "s3" {
+  source      = "../../modules/s3"
+  environment = "dev"
+  bucket_name = "dentalflow-scans-dev-542495333390"
+}
+
