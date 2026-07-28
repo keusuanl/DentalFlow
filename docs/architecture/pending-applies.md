@@ -10,6 +10,8 @@ have an actual workload using them.
 |---|---|---|---|
 | infra/modules/networking | Yes - 14 resources, no errors | No | VPC has no dependent workload yet (no ECS/RDS). Apply once ECS or RDS module is ready to consume it - avoids paying for idle NAT Gateway + EIP. |
 
+| infra/modules/s3 | Yes - 4 resources, no errors | No | No workload uses this bucket yet (no backend/frontend built). Apply once presigned URL generation is being tested, or bundle with ECS apply. |
+
 ## When to update this file
 - Add a row when a new module is written and plan-validated but not applied.
 - Update "Applied" to Yes once `terraform apply` is actually run for that module,
