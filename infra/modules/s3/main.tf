@@ -54,3 +54,13 @@ resource "aws_s3_bucket_policy" "scans" {
     ]
   })
 }
+
+# Notify the upload queue whenever a new scan file is created in the bucket
+resource "aws_s3_bucket_notification" "scan_uploads" {
+  bucket = aws_s3_bucket.scans.id
+
+  queue {
+    queue_arn = var.upload_queue_arn
+    events    = ["s3:ObjectCreated:*"]
+  }
+}

@@ -18,9 +18,16 @@ module "networking" {
   environment = "dev"
 }
 
+module "sqs_sns" {
+  source        = "../../modules/sqs_sns"
+  environment   = "dev"
+  s3_bucket_arn = module.s3.bucket_arn
+}
+
 module "s3" {
-  source      = "../../modules/s3"
-  environment = "dev"
-  bucket_name = "dentalflow-scans-dev-542495333390"
+  source           = "../../modules/s3"
+  environment      = "dev"
+  bucket_name      = "dentalflow-scans-dev-542495333390"
+  upload_queue_arn = module.sqs_sns.upload_queue_arn
 }
 
