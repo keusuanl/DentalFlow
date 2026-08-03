@@ -10,8 +10,9 @@ have an actual workload using them.
 |---|---|---|---|
 | infra/modules/networking | Yes - 14 resources, no errors | No | VPC has no dependent workload yet (no ECS/RDS). Apply once ECS or RDS module is ready to consume it, to avoid paying for idle NAT Gateway and EIP. |
 | infra/modules/s3 | Yes - 5 resources, no errors | No | No workload uses this bucket yet (no backend/frontend built). Apply once presigned URL generation is being tested, or bundle with ECS apply. |
-| infra/modules/sqs_sns | Yes - 8 resources, no errors | No | No consumer built yet (no backend). Apply alongside ECS/backend once something can actually process these queues. |
-| infra/modules/ecs | Partial - IAM roles applied for real (2 resources), remainder still being written | Partial | IAM task execution role and task role are live in AWS. Security groups, ALB, CloudWatch log group, ECS cluster, task definition, and service still need to be written before the module is complete. |
+| infra/modules/ecs | Yes - 37 total resources in full plan (2 already applied), no errors | Partial (2 IAM roles only) | Full module complete: security groups, ALB, target group, listener, log group, cluster, task definition, and service all written. Ready for full apply and end-to-end test with placeholder nginx image. |
+
+
 
 ### When to update this section
 - Add a row when a new module is written and plan-validated but not applied.
