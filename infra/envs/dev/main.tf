@@ -31,3 +31,14 @@ module "s3" {
   upload_queue_arn = module.sqs_sns.upload_queue_arn
 }
 
+
+module "ecs" {
+  source              = "../../modules/ecs"
+  environment         = "dev"
+  vpc_id              = module.networking.vpc_id
+  public_subnet_ids   = module.networking.public_subnet_ids
+  private_subnet_ids  = module.networking.private_subnet_ids
+}
+
+
+
