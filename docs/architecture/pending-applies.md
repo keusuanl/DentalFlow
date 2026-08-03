@@ -1,30 +1,25 @@
 # Project Tracking - Pending Applies & Documentation Debt
 
-## 1. Pending Terraform Applies
+## 1. Terraform Apply History
 
-Tracks infrastructure that has been written and validated (`terraform plan` succeeds)
-but deliberately NOT yet applied to AWS, to avoid paying for resources before they
-have an actual workload using them.
+All four core infrastructure modules were fully applied and live-tested on 2026-08-03,
+confirmed working end to end (ALB served the placeholder nginx page through the full
+stack: VPC, NAT, security groups, ECS Fargate, IAM roles), then destroyed the same
+session to avoid ongoing cost. Currently NOTHING is live in AWS.
 
-| Module | Validated (plan) | Applied | Notes |
-|---|---|---|---|
-| infra/modules/networking | Yes - 14 resources, no errors | No | VPC has no dependent workload yet (no ECS/RDS). Apply once ECS or RDS module is ready to consume it, to avoid paying for idle NAT Gateway and EIP. |
-| infra/modules/s3 | Yes - 5 resources, no errors | No | No workload uses this bucket yet (no backend/frontend built). Apply once presigned URL generation is being tested, or bundle with ECS apply. |
-| infra/modules/ecs | Yes - 37 total resources in full plan (2 already applied), no errors | Partial (2 IAM roles only) | Full module complete: security groups, ALB, target group, listener, log group, cluster, task definition, and service all written. Ready for full apply and end-to-end test with placeholder nginx image. |
-
-
+| Module | Validated (plan) | Ever applied | Currently live | Notes |
+|---|---|---|---|---|
+| infra/modules/networking | Yes | Yes (2026-08-03) | No, destroyed | 14 resources, confirmed working |
+| infra/modules/s3 | Yes | Yes (2026-08-03) | No, destroyed | 5 resources, confirmed working |
+| infra/modules/sqs_sns | Yes | Yes (2026-08-03) | No, destroyed | 8 resources, confirmed working |
+| infra/modules/ecs | Yes | Yes (2026-08-03) | No, destroyed | 12 resources, confirmed working end to end via live ALB test |
 
 ### When to update this section
-- Add a row when a new module is written and plan-validated but not applied.
-- Update "Applied" to Yes once `terraform apply` is actually run for that module,
-  and note the date.
-- Before ending a work session, check this file: anything marked Applied that's no
-  longer needed should be destroyed (`terraform destroy`) to avoid ongoing cost.
+- Before any future apply, note the date here.
+- Before ending a work session, confirm nothing is left live (`terraform plan` should
+  show 0 to add if starting from empty state, or check AWS Billing Dashboard directly).
 
 ## 2. Pending ADRs (documentation debt)
-
-Tracks decisions that have been made and acted on in code, but not yet formally
-written up as a numbered ADR.
 
 | ADR | Status | Notes |
 |---|---|---|
