@@ -80,7 +80,10 @@ resource "aws_db_instance" "main" {
   multi_az            = var.multi_az
   publicly_accessible = false
 
-  backup_retention_period = 7
+  # Set to 1 (RDS's own minimum), since our AWS account's Free Plan tier rejected
+  # the previously-planned 7-day retention with a FreeTierRestrictionError.
+  # Verify current account-tier limits at https://aws.amazon.com/free before increasing.
+  backup_retention_period = 1
   skip_final_snapshot     = true
 
   tags = {
