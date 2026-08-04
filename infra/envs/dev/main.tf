@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
   }
 }
 
@@ -39,6 +43,15 @@ module "ecs" {
   public_subnet_ids   = module.networking.public_subnet_ids
   private_subnet_ids  = module.networking.private_subnet_ids
 }
+
+module "rds" {
+  source                 = "../../modules/rds"
+  environment             = "dev"
+  vpc_id                  = module.networking.vpc_id
+  private_subnet_ids      = module.networking.private_subnet_ids
+  app_security_group_id   = module.ecs.ecs_tasks_security_group_id
+}
+
 
 
 

@@ -12,3 +12,8 @@ output "alb_dns_name" {
   description = "Public DNS name of the Application Load Balancer"
   value       = aws_lb.main.dns_name
 }
+
+output "ecs_tasks_security_group_id" {
+  description = "Security group ID of the ECS tasks, for other resources (like RDS) to allow traffic from"
+  value       = aws_security_group.ecs_tasks.id
+}
