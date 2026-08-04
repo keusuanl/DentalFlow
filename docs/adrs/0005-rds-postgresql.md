@@ -46,6 +46,11 @@ charges for capabilities (independent rotation policy, custom access auditing) t
 are not required under NFR-DATA-1's PHI-lite scope. This is consistent with ADR-002's
 SSE-S3 decision for the same reasoning.
 
+Backup retention period: planned at 7 days, but changed to 1 day (RDS's minimum)
+after a real apply attempt failed with a FreeTierRestrictionError. This account's
+Free Plan tier doesn't allow 7 days. Found this by actually running it, not by
+reading docs first.
+
 Credentials: generated via Terraform's random_password resource and stored in AWS
 Secrets Manager, never hardcoded or typed manually. The application will retrieve the
 credential at runtime using its existing IAM task role (established in ADR-004), not
@@ -69,7 +74,8 @@ that usage pattern changes, for example, if dev infrastructure begins running
 continuously for extended periods, this decision should be revisited, since the cost
 calculus would shift meaningfully. The Terraform state file becomes a sensitive
 artifact by necessity of generating credentials this way, requiring ongoing discipline
-to keep it out of version control.
+to keep it out of version control. -  1 day of backup retention is shorter than a real production setup would use(usually 7-35 days). This is a free-tier limit we're accepting for now. Should be
+increased once this moves to a real paid account or CloudDent.
 
 ## Alternatives Considered
 
