@@ -14,6 +14,8 @@ session to avoid ongoing cost. Currently NOTHING is live in AWS.
 | infra/modules/sqs_sns | Yes | Yes (2026-08-03) | No, destroyed | 8 resources, confirmed working |
 | infra/modules/ecs | Yes | Yes (2026-08-03) | No, destroyed | 12 resources, confirmed working end to end via live ALB test |
 
+| infra/modules/rds | Yes - 45 total resources in full plan | Not yet applied | Multi-AZ PostgreSQL, credentials via random_password + Secrets Manager. Ready for a short apply-test-destroy cycle once the backend needs it, or can be tested standalone via terraform apply -target if desired. |
+
 ### When to update this section
 - Before any future apply, note the date here.
 - Before ending a work session, confirm nothing is left live (`terraform plan` should
