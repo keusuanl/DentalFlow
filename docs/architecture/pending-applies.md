@@ -16,6 +16,20 @@ session to avoid ongoing cost. Currently NOTHING is live in AWS.
 
 | infra/modules/rds | Yes - 45 total resources in full plan | Not yet applied | Multi-AZ PostgreSQL, credentials via random_password + Secrets Manager. Ready for a short apply-test-destroy cycle once the backend needs it, or can be tested standalone via terraform apply -target if desired. |
 
+## 1b. Local Development Database (backend phase)
+
+Backend development uses a disposable local Postgres container, not RDS, to avoid
+idle AWS cost while iterating on application code. RDS (ADR-005) remains destroyed
+and will be applied again only for a dedicated deploy-test-destroy cycle once the
+backend is functional enough to validate against real infrastructure.
+
+| Component | Status | Notes |
+|---|---|---|
+| Local Postgres (Docker) | Running | `docker run --name dentalflow-postgres postgres:16`, port 5432, disposable, local-only credentials, never reused for real environments |
+| Alembic | Configured, 1 migration applied | `env.py` reads `DATABASE_URL` from `app.core.config.settings`, not `alembic.ini`, to keep secrets single-sourced |
+| Schema state | `users`, `orders` tables created | Migration `5aad5c9b6c7b`, reviewed manually against data-model.md before applying |
+
+
 ### When to update this section
 - Before any future apply, note the date here.
 - Before ending a work session, confirm nothing is left live (`terraform plan` should
@@ -26,6 +40,10 @@ session to avoid ongoing cost. Currently NOTHING is live in AWS.
 | ADR | Status | Notes |
 |---|---|---|
 | IAM scoping strategy for local dev credentials | Not written | Covers why PowerUserAccess was chosen over AdministratorAccess, why the narrow dentalflow-role-management policy exists, why it must be attached manually via root or console (self-privilege-escalation prevention), and the full discovered permission list (CreateRole, ListRolePolicies, ListAttachedRolePolicies, ListInstanceProfilesForRole, and others) with the real incident story as justification. Referenced informally in ADR-004. Deserves its own numbered ADR since it is a standalone, recurring security decision. |
+
+
+| psycopg2 vs psycopg3 driver choice | Not written | Switched from psycopg2-binary to psycopg[binary] (psycopg3) after psycopg2 had no prebuilt wheel for Python 3.14. Also documents the subsequent decision to recreate the dev venv on Python 3.12 rather than continue chasing wheel availability across the dependency tree — the actual root cause was running a bleeding-edge CPython release with immature ecosystem support, not any single package. Real incident, both decisions made deliberately with reasoning, not just "whatever worked." |
+
 
 ### When to update this section
 - Add a row whenever a real decision gets made and implemented in code or console
