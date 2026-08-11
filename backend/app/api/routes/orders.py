@@ -7,7 +7,12 @@ from app.core.dependencies import get_current_user, require_role
 from app.db.base import get_db
 from app.db.models.user import User
 from app.schemas.order import OrderCreate, OrderResponse, OrderStatusUpdate
-from app.services.order_service import create_order, get_orders_for_user, update_order_status
+from app.services.order_service import (
+    create_order,
+    get_orders_for_user,
+    get_order_by_id,
+    update_order_status,
+)
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -27,6 +32,15 @@ def list_orders(
     current_user: User = Depends(get_current_user),
 ):
     return get_orders_for_user(db, current_user)
+
+
+@router.get("/{order_id}", response_model=OrderResponse)
+def get_order(
+    order_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return get_order_by_id(db, order_id, current_user)
 
 
 @router.patch("/{order_id}", response_model=OrderResponse)

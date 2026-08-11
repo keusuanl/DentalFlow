@@ -69,3 +69,18 @@ def update_order_status(
     db.commit()
     db.refresh(order)
     return order
+
+
+def get_order_by_id(db: Session, order_id: uuid.UUID, current_user: User) -> Order:
+    order = db.query(Order).filter(Order.id == order_id).first()
+
+    if order is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    if current_user.role == "dentist" and order.dentist_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    if current_user.role == "lab_tech" and order.assigned_lab_tech_id not in (None, current_user.id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    return order
