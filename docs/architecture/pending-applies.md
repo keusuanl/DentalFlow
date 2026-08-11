@@ -71,3 +71,34 @@ already caused one 500 error this session, root-caused via `docker ps -a`.
   before its ADR is written.
 - Remove the row once the ADR is written and committed, replacing it with a
   cross-reference in the relevant module or ADR instead.
+
+
+
+## 3. Project Phase Decision: Infra Lifecycle Policy Change
+
+**Decision (2026-08-11):** Moving forward, infrastructure will be applied and left
+running for the remainder of active backend development, rather than continuing the
+apply-test-destroy-per-session discipline used throughout the infra phase.
+
+**Reasoning:** The original discipline existed because infra was being validated in
+isolation, module by module, with no real integration to test against yet. That
+context no longer applies — the backend now needs to exercise S3, SQS, SNS, and RDS
+together, repeatedly, over extended sessions (presigned URLs, a long-running SQS
+consumer, SNS fan-out). Destroying and reapplying after each session would reintroduce
+setup toil with no corresponding learning benefit, and would prevent the kind of
+long-running, realistic integration testing this stage actually requires.
+
+**Accepted tradeoff:** Real, ongoing hourly cost from Multi-AZ RDS (ADR-005) and the
+NAT Gateway (ADR-001), no longer bounded by short apply-test-destroy windows. Considered
+acceptable at this project stage. Candidate follow-up: a CloudWatch billing alarm, or
+at minimum a habit of periodically checking the AWS Billing Dashboard, per NFR-OBS-2/3 —
+not yet implemented.
+
+**Scope:** This does not change the ADR-000 single-tenant scope decision, nor any
+individual ADR's technical reasoning (Multi-AZ, shared NAT Gateway, etc.) — only when
+resources are destroyed, not what was decided about how they're built.
+
+### When to revisit
+- Once the backend's S3/SQS/SNS/RDS integration work is complete and stable, revert to
+  apply-test-destroy discipline for any further isolated testing, or move to a final
+  teardown once the project moves into portfolio/demo-only mode.
