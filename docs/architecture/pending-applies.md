@@ -30,6 +30,27 @@ backend is functional enough to validate against real infrastructure.
 | Schema state | `users`, `orders` tables created | Migration `5aad5c9b6c7b`, reviewed manually against data-model.md before applying |
 
 
+## 1c. Backend Auth Flow (backend phase)
+
+First fully working, end-to-end tested slice of the API: registration, login, JWT
+issuance, and RBAC scaffolding. Verified against real requests (curl), not just code
+review — including direct psql inspection of inserted rows.
+
+| Component | Status | Notes |
+|---|---|---|
+| POST /auth/register | Working | Bcrypt hashing confirmed via psql, duplicate email returns clean 400 (fixed from unhandled 500/IntegrityError) |
+| POST /auth/login | Working | JWT issued correctly; anti-enumeration confirmed both directions (wrong password / unknown email return identical 401) |
+| get_current_user / require_role | Written, not yet used by a protected route | Next: wire into orders.py |
+| GET /health | Working | No auth required, infra-only per data-model.md |
+
+### Known gap
+Docker Postgres container does not persist across WSL2/Docker daemon restarts
+automatically (no --restart policy set). Start of next session, run `docker start
+dentalflow-postgres` (not `docker run`) before testing anything — confirmed this
+already caused one 500 error this session, root-caused via `docker ps -a`.
+
+
+
 ### When to update this section
 - Before any future apply, note the date here.
 - Before ending a work session, confirm nothing is left live (`terraform plan` should
