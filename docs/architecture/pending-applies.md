@@ -102,3 +102,26 @@ resources are destroyed, not what was decided about how they're built.
 - Once the backend's S3/SQS/SNS/RDS integration work is complete and stable, revert to
   apply-test-destroy discipline for any further isolated testing, or move to a final
   teardown once the project moves into portfolio/demo-only mode.
+
+
+
+## 4. Incident: Secrets Manager deletion recovery window blocks re-apply
+
+**What happened (2026-08-13):** Re-applying full infra after the earlier destroy cycle
+failed on `aws_secretsmanager_secret.db_credentials` — AWS Secrets Manager schedules
+deleted secrets for a recovery window (default 30 days) rather than deleting them
+immediately, and refuses to create a new secret with the same name while the old one
+is still in that window.
+
+**Root cause:** The original `terraform destroy` (2026-08-04) scheduled the secret for
+deletion but didn't remove it immediately. This is Secrets Manager's built-in recovery
+protection working as designed, not a bug.
+
+**Fix:** `aws secretsmanager delete-secret --secret-id <name> --force-delete-without-recovery`
+to free the name immediately, then re-run `terraform apply` — Terraform resumed from
+state and only recreated the 2 missing resources (secret + secret version), not all 45.
+
+**Lesson for future destroys:** any future `terraform destroy` involving Secrets Manager
+will leave this same trap for the next apply unless force-delete is used at destroy time,
+or the recovery window is intentionally shortened in the resource config. Worth deciding
+if this is worth adding to ADR-005 as a known operational quirk.
