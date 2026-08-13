@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     # AWS
     aws_region: str = "us-east-1"
     s3_bucket_name: str = ""
+    upload_queue_url: str = ""
+    notification_topic_arn: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

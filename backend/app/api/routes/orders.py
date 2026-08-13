@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user, require_role
 from app.db.base import get_db
 from app.db.models.user import User
-from app.schemas.order import OrderCreate, OrderResponse, OrderStatusUpdate
+from app.schemas.order import OrderCreate, OrderCreateResponse, OrderResponse, OrderStatusUpdate
 from app.services.order_service import (
     create_order,
     get_orders_for_user,
@@ -17,13 +17,14 @@ from app.services.order_service import (
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 
-@router.post("", response_model=OrderResponse, status_code=201)
+@router.post("", response_model=OrderCreateResponse, status_code=201)
 def create_new_order(
     order_in: OrderCreate,
     db: Session = Depends(get_db),
     dentist: User = Depends(require_role("dentist")),
 ):
-    return create_order(db, order_in, dentist)
+    order, upload_url = create_order(db, order_in, dentist)
+    return OrderCreateResponse(**OrderResponse.model_validate(order).model_dump(), upload_url=upload_url)
 
 
 @router.get("", response_model=list[OrderResponse])

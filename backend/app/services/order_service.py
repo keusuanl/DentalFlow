@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.models.order import Order
 from app.db.models.user import User
 from app.schemas.order import OrderCreate
+from app.services.s3_service import generate_upload_url
 
 # Per data-model.md lifecycle: pending_upload -> received -> in_fabrication -> completed
 VALID_TRANSITIONS = {
@@ -17,7 +18,7 @@ VALID_TRANSITIONS = {
 }
 
 
-def create_order(db: Session, order_in: OrderCreate, dentist: User) -> Order:
+def create_order(db: Session, order_in: OrderCreate, dentist: User) -> tuple[Order, str]:
     order = Order(
         patient_name=order_in.patient_name,
         patient_dob=order_in.patient_dob,
@@ -30,7 +31,13 @@ def create_order(db: Session, order_in: OrderCreate, dentist: User) -> Order:
     db.add(order)
     db.commit()
     db.refresh(order)
-    return order
+
+    upload_url, object_key = generate_upload_url(order.id, order_in.filename)
+    order.s3_object_key = object_key
+    db.commit()
+    db.refresh(order)
+
+    return order, upload_url
 
 
 def get_orders_for_user(db: Session, current_user: User) -> list[Order]:
@@ -44,6 +51,21 @@ def get_orders_for_user(db: Session, current_user: User) -> list[Order]:
         ).all()
 
     return []
+
+
+def get_order_by_id(db: Session, order_id: uuid.UUID, current_user: User) -> Order:
+    order = db.query(Order).filter(Order.id == order_id).first()
+
+    if order is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    if current_user.role == "dentist" and order.dentist_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    if current_user.role == "lab_tech" and order.assigned_lab_tech_id not in (None, current_user.id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    return order
 
 
 def update_order_status(
@@ -68,19 +90,4 @@ def update_order_status(
     order.status = new_status
     db.commit()
     db.refresh(order)
-    return order
-
-
-def get_order_by_id(db: Session, order_id: uuid.UUID, current_user: User) -> Order:
-    order = db.query(Order).filter(Order.id == order_id).first()
-
-    if order is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
-
-    if current_user.role == "dentist" and order.dentist_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
-
-    if current_user.role == "lab_tech" and order.assigned_lab_tech_id not in (None, current_user.id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
-
     return order

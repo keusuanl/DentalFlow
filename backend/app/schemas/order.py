@@ -10,6 +10,7 @@ class OrderCreate(BaseModel):
     patient_gender: str
     case_type: str
     notes: str | None = None
+    filename: str
 
 
 class OrderStatusUpdate(BaseModel):
@@ -33,3 +34,7 @@ class OrderResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class OrderCreateResponse(OrderResponse):
+    upload_url: str
