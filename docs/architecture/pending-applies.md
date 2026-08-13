@@ -125,3 +125,20 @@ state and only recreated the 2 missing resources (secret + secret version), not 
 will leave this same trap for the next apply unless force-delete is used at destroy time,
 or the recovery window is intentionally shortened in the resource config. Worth deciding
 if this is worth adding to ADR-005 as a known operational quirk.
+
+
+
+## 5. Session checkpoint: presigned URL code written, not yet live-tested
+
+Full infra re-applied (45 resources), all AWS outputs captured. Discovered RDS is
+correctly unreachable from outside the VPC (security group scoped to ECS tasks only) —
+confirms ADR-005's isolation is real, but means real-RDS testing now requires the
+backend to actually run on ECS, not locally. Local dev continues against Docker
+Postgres in the meantime.
+
+S3 presigned upload URL code is written (`s3_service.py`, wired into `create_order`)
+but NOT YET TESTED against the real bucket. Next session: test POST /orders live,
+confirm presigned URL works with a real curl upload, verify object lands in S3.
+
+Remaining before Docker/ECS: GET /orders/{id}/download-url, SQS consumer, SNS publish.
+
