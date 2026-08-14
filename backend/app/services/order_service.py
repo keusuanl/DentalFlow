@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.models.order import Order
 from app.db.models.user import User
 from app.schemas.order import OrderCreate
-from app.services.s3_service import generate_upload_url
+from app.services.s3_service import generate_upload_url, generate_download_url
 
 # Per data-model.md lifecycle: pending_upload -> received -> in_fabrication -> completed
 VALID_TRANSITIONS = {
@@ -91,3 +91,21 @@ def update_order_status(
     db.commit()
     db.refresh(order)
     return order
+
+
+def get_download_url_for_order(db: Session, order_id: uuid.UUID, lab_tech: User) -> str:
+    order = db.query(Order).filter(Order.id == order_id).first()
+
+    if order is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    if order.assigned_lab_tech_id not in (None, lab_tech.id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    if order.s3_object_key is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No scan file has been uploaded for this order yet",
+        )
+
+    return generate_download_url(order.s3_object_key)

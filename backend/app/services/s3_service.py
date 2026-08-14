@@ -19,3 +19,14 @@ def generate_upload_url(order_id: uuid.UUID, filename: str) -> tuple[str, str]:
     )
 
     return url, object_key
+
+
+def generate_download_url(object_key: str) -> str:
+    return s3_client.generate_presigned_url(
+        ClientMethod="get_object",
+        Params={
+            "Bucket": settings.s3_bucket_name,
+            "Key": object_key,
+        },
+        ExpiresIn=PRESIGNED_URL_EXPIRY_SECONDS,
+    )

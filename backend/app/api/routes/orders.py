@@ -12,6 +12,7 @@ from app.services.order_service import (
     get_orders_for_user,
     get_order_by_id,
     update_order_status,
+    get_download_url_for_order,
 )
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -52,3 +53,13 @@ def patch_order_status(
     lab_tech: User = Depends(require_role("lab_tech")),
 ):
     return update_order_status(db, order_id, status_update.status, lab_tech)
+
+
+@router.get("/{order_id}/download-url")
+def get_order_download_url(
+    order_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    lab_tech: User = Depends(require_role("lab_tech")),
+):
+    url = get_download_url_for_order(db, order_id, lab_tech)
+    return {"download_url": url}
