@@ -142,3 +142,12 @@ confirm presigned URL works with a real curl upload, verify object lands in S3.
 
 Remaining before Docker/ECS: GET /orders/{id}/download-url, SQS consumer, SNS publish.
 
+
+## 6. S3 presigned upload flow: verified live (2026-08-14)
+
+POST /orders now generates a real presigned S3 PUT URL, tested end to end:
+order created -> presigned URL returned -> curl -T upload directly to S3 -> confirmed
+via `aws s3 ls` that the object landed at the correct scans/{order_id}/{filename} path.
+No longer a known gap.
+
+
