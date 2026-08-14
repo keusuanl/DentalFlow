@@ -8,6 +8,7 @@ import boto3
 from app.core.config import settings
 from app.db.base import SessionLocal
 from app.db.models.order import Order
+from app.services.sns_service import publish_order_notification
 
 sqs_client = boto3.client("sqs", region_name=settings.aws_region)
 
@@ -31,6 +32,7 @@ def _process_message(body: dict) -> None:
             if order and order.status == "pending_upload":
                 order.status = "received"
                 db.commit()
+                publish_order_notification(order.id, "received", order.patient_name)
         finally:
             db.close()
 

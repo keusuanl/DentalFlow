@@ -8,6 +8,7 @@ from app.db.models.order import Order
 from app.db.models.user import User
 from app.schemas.order import OrderCreate
 from app.services.s3_service import generate_upload_url, generate_download_url
+from app.services.sns_service import publish_order_notification
 
 # Per data-model.md lifecycle: pending_upload -> received -> in_fabrication -> completed
 VALID_TRANSITIONS = {
@@ -90,6 +91,10 @@ def update_order_status(
     order.status = new_status
     db.commit()
     db.refresh(order)
+
+    if new_status == "completed":
+        publish_order_notification(order.id, "completed", order.patient_name)
+
     return order
 
 
