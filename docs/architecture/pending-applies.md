@@ -151,3 +151,16 @@ via `aws s3 ls` that the object landed at the correct scans/{order_id}/{filename
 No longer a known gap.
 
 
+## 7. SQS consumer: verified live, with a documented simplification (2026-08-14)
+
+Background asyncio task (FastAPI lifespan) polls the upload SQS queue via boto3 in a
+threadpool (asyncio.to_thread), avoiding blocking the event loop. Verified end to end:
+uploaded a real file via presigned URL, confirmed status auto-transitioned
+pending_upload -> received with no manual PATCH call, within ~10-20s of upload.
+
+**Known simplification, not yet hardened:** messages are deleted from the queue
+unconditionally in a finally block, regardless of processing outcome. ADR-003 describes
+DLQ-based retry for genuine failures (e.g. RDS unavailable mid-processing) — this
+implementation does not yet distinguish "processed successfully" from "failed, should
+retry via redelivery + DLQ." Acceptable for current single-tenant, low-volume scope;
+worth hardening if this pattern carries into CloudDent.
