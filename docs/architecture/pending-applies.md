@@ -164,3 +164,30 @@ DLQ-based retry for genuine failures (e.g. RDS unavailable mid-processing) — t
 implementation does not yet distinguish "processed successfully" from "failed, should
 retry via redelivery + DLQ." Acceptable for current single-tenant, low-volume scope;
 worth hardening if this pattern carries into CloudDent.
+
+## 8. Docker/ECS deployment: real app running live on ECS (2026-08-15)
+
+Backend Dockerized, pushed to ECR, deployed to ECS Fargate. Real incidents hit and
+resolved: target group replacement ordering (fixed with create_before_destroy +
+name_prefix, since a fixed name collided with itself during create-before-destroy),
+missing environment variables causing immediate container crash (fixed by adding a
+plain environment block to the task definition - NOT YET moved to Secrets Manager,
+deliberately deferred to keep session scope manageable).
+
+CONFIRMED WORKING: curl against the real ALB URL returns 200 OK from the actual
+FastAPI app (not the nginx placeholder), for both /health and via ALB health checks
+passing steadily on both Fargate tasks.
+
+KNOWN GAP, next session: /auth/login returns 500 against real RDS because the
+users/orders schema has never been migrated there - all Alembic migrations so far
+only ever ran against local Docker Postgres. Laptop cannot reach RDS directly (VPC
+isolation, confirmed earlier). Need to decide the simplest non-blind-consistency way
+to run `alembic upgrade head` against real RDS - candidates include ECS Exec into the
+running container, or a one-off migration task. Decide deliberately next session, not
+under session-fatigue.
+
+ALSO DEFERRED: JWT_SECRET and DATABASE_URL currently live as plain (sensitive-marked
+but unencrypted) Terraform variables in terraform.tfvars (gitignored) and appear in
+plaintext in the task definition. Real Secrets Manager integration (ADR-005's original
+intent) still pending - deliberately deferred to get a working deployment first, harden
+second, per explicit decision this session.
