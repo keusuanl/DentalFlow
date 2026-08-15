@@ -39,3 +39,8 @@ output "db_secret_arn" {
   sensitive   = true
 }
 
+
+output "ecr_repository_url" {
+  description = "URL of the ECR repository for the backend application image"
+  value       = module.ecs.ecr_repository_url
+}

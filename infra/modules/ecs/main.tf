@@ -91,18 +91,22 @@ resource "aws_security_group" "ecs_tasks" {
 
 # Target group - the set of ECS tasks the ALB will route traffic to
 resource "aws_lb_target_group" "ecs" {
-  name        = "dentalflow-${var.environment}-tg"
+  name_prefix        = "dtg-"
   port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
 
   health_check {
-    path                = "/"
+    path                = "/health"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 5
     interval            = 30
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   tags = {
@@ -181,6 +185,16 @@ resource "aws_ecs_task_definition" "app" {
           protocol      = "tcp"
         }
       ]
+      environment = [
+        { name = "DATABASE_URL", value = var.database_url },
+        { name = "JWT_SECRET", value = var.jwt_secret },
+        { name = "JWT_ALGORITHM", value = "HS256" },
+        { name = "ACCESS_TOKEN_EXPIRE_MINUTES", value = "30" },
+        { name = "AWS_REGION", value = "us-east-1" },
+        { name = "S3_BUCKET_NAME", value = var.s3_bucket_name },
+        { name = "UPLOAD_QUEUE_URL", value = var.upload_queue_url },
+        { name = "NOTIFICATION_TOPIC_ARN", value = var.notification_topic_arn }
+      ]
 
       logConfiguration = {
         logDriver = "awslogs"
@@ -218,4 +232,18 @@ resource "aws_ecs_service" "app" {
   }
 
   depends_on = [aws_lb_listener.http]
+}
+
+# ECR repository - private registry for our application's container images
+resource "aws_ecr_repository" "app" {
+  name                 = "dentalflow-${var.environment}-app"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Environment = var.environment
+  }
 }

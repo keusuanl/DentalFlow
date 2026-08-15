@@ -47,3 +47,30 @@ variable "desired_count" {
   type        = number
   default     = 2
 }
+
+variable "database_url" {
+  description = "Full database connection string (temporary plain env var, to be moved to Secrets Manager)"
+  type        = string
+  sensitive   = true
+}
+
+variable "jwt_secret" {
+  description = "JWT signing secret (temporary plain env var, to be moved to Secrets Manager)"
+  type        = string
+  sensitive   = true
+}
+
+variable "s3_bucket_name" {
+  description = "S3 bucket name for scan storage"
+  type        = string
+}
+
+variable "upload_queue_url" {
+  description = "SQS upload queue URL"
+  type        = string
+}
+
+variable "notification_topic_arn" {
+  description = "SNS notification topic ARN"
+  type        = string
+}

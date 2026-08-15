@@ -17,3 +17,8 @@ output "ecs_tasks_security_group_id" {
   description = "Security group ID of the ECS tasks, for other resources (like RDS) to allow traffic from"
   value       = aws_security_group.ecs_tasks.id
 }
+
+output "ecr_repository_url" {
+  description = "URL of the ECR repository for pushing the application image"
+  value       = aws_ecr_repository.app.repository_url
+}
