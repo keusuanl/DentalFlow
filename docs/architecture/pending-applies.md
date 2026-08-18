@@ -191,3 +191,31 @@ but unencrypted) Terraform variables in terraform.tfvars (gitignored) and appear
 plaintext in the task definition. Real Secrets Manager integration (ADR-005's original
 intent) still pending - deliberately deferred to get a working deployment first, harden
 second, per explicit decision this session.
+
+
+## 9. Real RDS migration: resolved and verified live (2026-08-18)
+
+Root-caused and fixed the blocking gap from last session: Alembic's env.py passes
+DATABASE_URL through configparser (via config.set_main_option), which treats "%" as
+interpolation syntax. Our URL-encoded RDS password contains literal "%" characters,
+causing a ValueError. Fixed by escaping "%" as "%%" before handing the value to
+configparser - only affects parsing, not the actual connection string used at runtime.
+
+Migration approach: ECS Exec, chosen deliberately over a dedicated one-off migration
+task, since it reuses already-deployed infrastructure with no new Terraform resources
+needed. Required: enable_execute_command = true on the service, an IAM policy
+(AmazonSSMManagedInstanceCore) attached to the task role, and the Session Manager
+Plugin installed locally. Folded into the existing pending IAM-scoping ADR rather than
+tracked separately, since it's the same category of task-role permission debt.
+
+CONFIRMED LIVE END TO END: users/orders tables created in real RDS via
+`alembic upgrade head` run inside a running Fargate container. Verified directly via
+SQLAlchemy query (not just trusting Alembic's log output). Then confirmed the full
+public-facing flow: POST /auth/register and POST /auth/login against the real ALB URL
+both succeeded, creating and authenticating a real user against real RDS.
+
+This closes the loop from the previous session's confusion point. The backend is now
+genuinely deployed and functional on real AWS infrastructure, not just locally tested.
+
+Still deferred: JWT_SECRET/DATABASE_URL remain plain (not Secrets-Manager-backed)
+environment variables in the task definition. Real IAM scoping ADR still unwritten.
