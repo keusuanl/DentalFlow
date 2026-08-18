@@ -15,7 +15,11 @@ from app.db.models import user, order  # noqa: F401 — import so models registe
 config = context.config
 
 # --- Added: inject the real DB URL from .env, overriding alembic.ini ---
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# configparser (used internally by alembic.ini) treats "%" as interpolation
+# syntax by default. Our DB password is URL-encoded and contains literal "%"
+# characters (e.g. %24 for "$"), so we must escape them as "%%" before handing
+# the value to configparser, or it raises "invalid interpolation syntax".
+config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:

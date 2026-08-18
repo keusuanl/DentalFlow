@@ -218,6 +218,7 @@ resource "aws_ecs_service" "app" {
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
+  enable_execute_command = true
 
   network_configuration {
     subnets          = var.private_subnet_ids
@@ -246,4 +247,9 @@ resource "aws_ecr_repository" "app" {
   tags = {
     Environment = var.environment
   }
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_ssm" {
+  role       = aws_iam_role.ecs_task.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
