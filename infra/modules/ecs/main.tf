@@ -253,3 +253,64 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_ssm" {
   role       = aws_iam_role.ecs_task.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+
+# Scoped S3 access for the application task role, put and get only, only within
+# this bucket's scans prefix, matching the object key pattern from ADR-0002.
+resource "aws_iam_role_policy" "ecs_task_s3_scans" {
+  name = "dentalflow-${var.environment}-ecs-task-s3-scans"
+  role = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject"
+        ]
+        Resource = "${var.s3_bucket_arn}/scans/*"
+      }
+    ]
+  })
+}
+
+# SQS access for the application task role, receive and delete on the upload queue
+# only, matching what the background consumer in sqs_consumer.py actually does.
+resource "aws_iam_role_policy" "ecs_task_sqs_upload" {
+  name = "dentalflow-${var.environment}-ecs-task-sqs-upload"
+  role = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = var.upload_queue_arn
+      }
+    ]
+  })
+}
+
+# SNS publish for the application task role, matching what sns_service.py does on
+# order status transitions.
+resource "aws_iam_role_policy" "ecs_task_sns_publish" {
+  name = "dentalflow-${var.environment}-ecs-task-sns-publish"
+  role = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "sns:Publish"
+        Resource = var.notification_topic_arn_for_iam
+      }
+    ]
+  })
+}

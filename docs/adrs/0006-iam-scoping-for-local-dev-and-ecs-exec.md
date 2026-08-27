@@ -61,3 +61,15 @@ practice.
 both require additional infrastructure (an EC2 instance or VPN gateway) for a need
 already satisfiable via a resource that already exists and already has network access
 to RDS - the running ECS task itself.
+
+## Update, 2026-08-24
+
+Adding a scoped inline S3 policy to the ECS task role, `s3:PutObject` and
+`s3:GetObject` restricted to the scans prefix of the application bucket, surfaced a
+further gap in the dentalflow-dev user's role management policy, `iam:GetRolePolicy`
+was missing, needed by Terraform to read back an inline policy after creating it,
+discovered when `terraform apply` failed with an AccessDenied error naming that exact
+action. Added to the existing policy's action list, same `dentalflow-*` resource
+scope, no broadening beyond what was actually needed. This is the same iterative
+discovery pattern already described above, each real integration surfaces its own
+permission edges, found by doing, not guessed upfront.

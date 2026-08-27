@@ -47,6 +47,9 @@ module "ecs" {
   s3_bucket_name             = module.s3.bucket_id
   upload_queue_url           = module.sqs_sns.upload_queue_url
   notification_topic_arn     = module.sqs_sns.notification_topic_arn
+  s3_bucket_arn             = module.s3.bucket_arn
+  upload_queue_arn           = module.sqs_sns.upload_queue_arn
+  notification_topic_arn_for_iam = module.sqs_sns.notification_topic_arn
 }
 
 module "rds" {

@@ -74,3 +74,18 @@ variable "notification_topic_arn" {
   description = "SNS notification topic ARN"
   type        = string
 }
+
+variable "s3_bucket_arn" {
+  description = "ARN of the S3 bucket the ECS task role needs read and write access to, for scan uploads and downloads"
+  type        = string
+}
+
+variable "upload_queue_arn" {
+  description = "ARN of the SQS upload queue, for the ECS task role to receive and delete messages"
+  type        = string
+}
+
+variable "notification_topic_arn_for_iam" {
+  description = "ARN of the SNS notification topic, for the ECS task role to publish to"
+  type        = string
+}
