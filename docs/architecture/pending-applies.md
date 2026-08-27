@@ -219,3 +219,46 @@ genuinely deployed and functional on real AWS infrastructure, not just locally t
 
 Still deferred: JWT_SECRET/DATABASE_URL remain plain (not Secrets-Manager-backed)
 environment variables in the task definition. Real IAM scoping ADR still unwritten.
+
+
+## 10. API walkthrough: completed and verified live (2026-08-27)
+
+All 12 steps of docs/architecture/api-walkthrough.md are now written and committed
+(commit 8ca5e41). Previously only steps 1 through 3 genuinely existed in the file,
+despite commit 995dcca's message claiming steps 1 through 6, that discrepancy was
+caught by checking git history directly rather than trusting the commit message or
+the prior session's handoff summary.
+
+Steps 4 through 12 cover the lab technician login, the full order lifecycle
+(pending_upload, received, in_fabrication, completed), the automatic SQS-driven
+status transition with no manual PATCH, the presigned upload/download round trip,
+and the real SNS notification pulled directly off the notification SQS queue. Two
+RBAC boundaries are demonstrated as matched positive/negative pairs, not just
+asserted, a lab technician's blocked attempt to create an order alongside the
+dentist's successful one, and the server-derived assigned_lab_tech_id field that
+can't be set by client input.
+
+Real queue naming was confirmed via `aws sqs list-queues` rather than assumed from
+ADR-0003's prose, the actual convention is `dev-dentalflow-*`, not `dentalflow-dev-*`
+as used elsewhere (ECS cluster, ALB). Worth remembering if this comes up again.
+
+**Data cleanup performed:** three leftover test orders from the 2026-08-24 session
+(9ebf66ad, e0dd9d3c, 8f674e0a) were deleted from RDS via ECS Exec, confirmed with a
+re-query afterward. This included 8f674e0a, the order already known to be
+permanently stuck at pending_upload from the earlier session's SQS message
+consumption incident. Its removal is not a new issue, just closing out dead test
+data. Deleted via direct SQL, not through the API, since no DELETE endpoint exists
+for orders.
+
+**Screenshots cleaned up:** three orphaned, misnamed screenshots
+(Dentist_Creating_a_Case.png, File_Uploaded_to_S3.png, Querying-the-DB.png) were
+removed, they didn't follow the NN-lowercase-hyphenated.png convention and weren't
+referenced anywhere in the file. Only 01-ecs-service-running.png and
+02-users-table-rds.png remain, both genuinely referenced. No new screenshots were
+added for steps 4 through 12, consistent with the API-first framing (ADR-0009),
+every step already has self-contained JSON or terminal output as its evidence.
+
+**Still open:** architecture diagram (not started), README (not started), compiled
+incidents document (deferred to project close, now has a growing real list to draw
+from), IAM scoping ADR finalization (ADR-0006 has an addendum but isn't a clean
+standalone document yet).
