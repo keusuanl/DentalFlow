@@ -21,9 +21,10 @@ infrastructure, Terraform-managed, no shortcuts, no local-only demo. Every
 flow documented in this repo was run against the live, deployed system, not
 simulated.
 
-![DentalFlow architecture](dentalflow-architecture.png)
+![DentalFlow as-built architecture](docs/architecture/dentalflow-architecture1.png)
 
-![Dentalflow as-built](dentalflow-architecture1.png)
+*As-built, reflects what's genuinely deployed today, verified against real
+Terraform output and live AWS evidence, not just designed on paper.*
 
 ## Why this exists
 
@@ -113,9 +114,7 @@ dedicated incidents document (in progress).
 
 **Diagram:**
 
-![DentalFlow architecture](dentalflow-architecture2.png)
-
-![DentalFlow architecture](dentalflow-architecture3.png)
+![DentalFlow target architecture](docs/architecture/dentalflow-architecture.png)
 
 ## See it work
 
@@ -148,9 +147,19 @@ Architecture diagram, verified against real Terraform and live AWS output.
 **Not started, on the roadmap:** CI/CD pipeline, CloudWatch observability
 and alerting (NFR-OBS-2/3), compiled incidents document.
 
+## Target architecture, the upgrade path
+
+The as-built diagram above reflects what's genuinely deployed today. This
+target diagram shows the natural next iteration, TLS termination at the
+ALB, VPC endpoints to shrink NAT blast radius, CloudWatch alarms tied to
+real NFRs, a DLQ-aware consumer, the items already tracked in ADR-0008 and
+the roadmap above, made visible rather than left as a bullet list alone.
+
+![DentalFlow target architecture](docs/architecture/dentalflow-architecture2.png)
+
 ## Repo structure
 
-```bash
+```txt
 dentalflow/
 ├── backend/                 # FastAPI application
 │   ├── app/
@@ -175,7 +184,8 @@ dentalflow/
 └── docs/
     ├── adrs/                  # ADR-0000 through ADR-0009
     └── architecture/
-        ├── dentalflow-architecture.png
+        ├── dentalflow-architecture1.png    # as-built
+        ├── dentalflow-architecture2.png    # target
         ├── requirements.md
         ├── data-model.md
         ├── data-flow.md
@@ -184,9 +194,7 @@ dentalflow/
         └── screenshots/
 ```
 
-***Terraform modules:  5 (Networking, S3, SQS/SNS, ECS, RDS)***
-
-***Teraform Resources: 50***
+5 Terraform modules: networking, S3, SQS/SNS, ECS, RDS.
 
 ## What's next
 
