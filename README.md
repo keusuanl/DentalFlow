@@ -21,7 +21,7 @@ infrastructure, Terraform-managed, no shortcuts, no local-only demo. Every
 flow documented in this repo was run against the live, deployed system, not
 simulated.
 
-![DentalFlow as-built architecture](docs/architecture/dentalflow-architecture1.png)
+![DentalFlow target architecture](docs/architecture/dentalflow-architecture.png)
 
 *As-built, reflects what's genuinely deployed today, verified against real
 Terraform output and live AWS evidence, not just designed on paper.*
@@ -114,7 +114,7 @@ dedicated incidents document (in progress).
 
 **Diagram:**
 
-![DentalFlow target architecture](docs/architecture/dentalflow-architecture.png)
+![DentalFlow as-built architecture](docs/architecture/dentalflow-architecture1.png)
 
 ## See it work
 
